@@ -1,0 +1,21 @@
+"name": "keepalived"
+"summary": "Failover and monitoring daemon for LVS clusters"
+"maintainers":
+  - "Michal Sawicz <michal.sawicz@canonical.com>"
+"description": |
+  keepalived is used for monitoring real servers within a Linux Virtual
+  Server (LVS) cluster.
+"tags":
+  - "networking"
+"series":
+  - "xenial"
+"requires":
+  "juju_info":
+    "interface": "juju-info"
+    "scope": "container"
+"provides":
+  "loadbalancer":
+    "interface": "public-address"
+  "website":
+    "interface": "http"
+"subordinate": !!bool "true"

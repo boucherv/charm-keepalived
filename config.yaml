@@ -1,0 +1,16 @@
+"options":
+  "virtual-ip":
+    "type": "string"
+    "description": |
+      Virtual IP/netmask that will be moved between instances,
+      e.g.: 10.1.2.3/16
+  "router-id":
+    "type": "int"
+    "description": |
+      Virtual router identifier - a number between 1 and 255
+      that's unique within the network segment
+  "network-interface":
+    "type": "string"
+    "default": "eth0"
+    "description": |
+      Network interface name for the VIP
