@@ -33,9 +33,13 @@ def configure_keepalived_service():
         {
             'service': 'keepalived',
             'required_data': [
-                helpers.RequiredConfig('virtual-ip',
-                                       'network-interface',
-                                       'router-id'),
+                helpers.RequiredConfig('admin-virtual-ip',
+                                       'admin-network-interface',
+                                       'admin-router-id',
+                                       'public',
+                                       'public-virtual-ip',
+                                       'public-network-interface',
+                                       'public-router-id'),
                 {'is_leader': is_leader()}
             ],
             'data_ready': [
@@ -76,7 +80,7 @@ def configure_keepalived_service():
 @hook('website-relation-joined')
 def website_relation_joined():
     ''' Send the virtual IP '''
-    ipaddr = re.split('/', config()['virtual-ip'])[0]
+    ipaddr = re.split('/', config()['admin-virtual-ip'])[0]
 
     relation_settings = {
         "hostname": ipaddr,
@@ -88,7 +92,7 @@ def website_relation_joined():
 @hook('loadbalancer-relation-joined')
 def loadbalancer_relation_joined():
     ''' Send the virtual IP  '''
-    ipaddr = re.split('/', config()['virtual-ip'])[0]
+    ipaddr = re.split('/', config()['admin-virtual-ip'])[0]
 
     relation_settings = {
         "public-address": ipaddr,

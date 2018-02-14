@@ -1,15 +1,35 @@
 "options":
-  "virtual-ip":
+  "admin-virtual-ip":
     "type": "string"
     "description": |
       Virtual IP/netmask that will be moved between instances,
       e.g.: 10.1.2.3/16
-  "router-id":
+  "admin-router-id":
     "type": "int"
     "description": |
       Virtual router identifier - a number between 1 and 255
       that's unique within the network segment
-  "network-interface":
+  "admin-network-interface":
+    "type": "string"
+    "default": "eth0"
+    "description": |
+      Network interface name for the VIP
+  "public":
+    "type": "boolean"
+    "default": false
+    "description": |
+      "If you use a second network put to true"
+  "public-virtual-ip":
+    "type": "string"
+    "description": |
+      Virtual IP/netmask that will be moved between instances,
+      e.g.: 10.1.2.3/16
+  "public-router-id":
+    "type": "int"
+    "description": |
+      Virtual router identifier - a number between 1 and 255
+      that's unique within the network segment
+  "public-network-interface":
     "type": "string"
     "default": "eth0"
     "description": |
