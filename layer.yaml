@@ -1,4 +1,4 @@
-includes: ['layer:basic', 'interface:juju-info', 'interface:public-address', ]
+includes: ['layer:basic', 'interface:juju-info', 'interface:public-address', 'interface:http']
 options:
   basic:
     use_venv: true
