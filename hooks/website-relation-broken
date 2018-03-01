@@ -1,9 +1,0 @@
-#!/usr/bin/env python3
-
-# Load modules from $JUJU_CHARM_DIR/lib
-import sys
-sys.path.append('lib')
-
-from charms.layer import basic
-basic.bootstrap_charm_deps()
-basic.init_config_states()
