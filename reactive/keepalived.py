@@ -1,14 +1,16 @@
 import os
 import re
 
-from charms.reactive import set_state, when, when_not, hook
+from charms.reactive import set_state, when, when_not
+from charms.reactive.flags import remove_state
+from charms.templating.jinja2 import render
+
 
 from charmhelpers.fetch import apt_update, apt_install
-from charmhelpers.core.hookenv import log, status_set, relation_set
-from charmhelpers.core.hookenv import config, relation_id, is_leader
-from charmhelpers.core.host import service_stop, service_restart
-from charmhelpers.core.services import helpers
-from charmhelpers.core.services.base import ServiceManager
+from charmhelpers.core.hookenv import log, status_set
+from charmhelpers.core.hookenv import config, is_leader
+from charmhelpers.core.host import service_restart
+
 
 SYSCTL_FILE = os.path.join(os.sep, 'etc', 'sysctl.d', '50-keepalived.conf')
 KEEPALIVED_CONFIG_FILE = os.path.join(os.sep, 'etc', 'keepalived',
@@ -27,76 +29,54 @@ def install_keepalived_package():
 
 
 @when('keepalived.package.installed')
+@when_not('keepalived.started')
 def configure_keepalived_service():
     ''' Set up the keepalived service '''
-    manager = ServiceManager([
-        {
-            'service': 'keepalived',
-            'required_data': [
-                helpers.RequiredConfig('admin-virtual-ip',
-                                       'admin-network-interface',
-                                       'admin-router-id',
-                                       'public',
-                                       'public-virtual-ip',
-                                       'public-network-interface',
-                                       'public-router-id'),
-                {'is_leader': is_leader()}
-            ],
-            'data_ready': [
-                lambda arg: status_set('active', 'VIP ready'),
-                helpers.template(
-                    source='keepalived.conf',
-                    target=KEEPALIVED_CONFIG_FILE,
-                    perms=0o644
-                )
-            ],
-            # keepalived has no "status" commandjuju charm UnicodeDecodeError:
-            'stop': [
-                lambda arg: service_stop('keepalived')
-            ],
-            'start': [
-                lambda arg: service_restart('keepalived')
-            ],
-        },
-        {
-            'service': 'procps',
-            'required_data': [
-                {'sysctl': {'net.ipv4.ip_nonlocal_bind': 1}},
-            ],
-            'data_ready': [
-                helpers.template(
-                    source='50-keepalived.conf',
-                    target=SYSCTL_FILE,
-                    perms=0o644
-                )
-            ],
-        }
-    ])
-    manager.manage()
+
+    admin_virtual_ip = config().get('admin-virtual-ip')
+    public_virtual_ip = config().get('public-virtual-ip')
+    if admin_virtual_ip == "" or public_virtual_ip == "":
+        status_set('blocked', 'Please configure virtual ips')
+        return
+
+    context = {'is_leader': is_leader(),
+               'admin-virtual-ip': admin_virtual_ip,
+               'admin-network-interface': config().get('admin-network-interface'),
+               'admin-router-id': config().get('admin-router-id'),
+               'public': config().get('public'),
+               'public-virtual-ip': public_virtual_ip,
+               'public-network-interface': config().get('public-network-interface'),
+               'public-router-id': config().get('public-router-id'),
+               }
+    render(source='keepalived.conf',
+           target=KEEPALIVED_CONFIG_FILE,
+           context=context,
+           perms=0o644)
+    service_restart('keepalived')
+
+    render(source='50-keepalived.conf',
+        target=SYSCTL_FILE,
+        context={'sysctl': {'net.ipv4.ip_nonlocal_bind': 1}},
+        perms=0o644)
+    service_restart('keepalived')
+
+    status_set('active', 'VIP ready')
+    set_state('keepalived.started')
 
 
+@when('config.changed')
+def reconfigure():
+    remove_state('keepalived.started')
 
 
-@hook('website-relation-joined')
-def website_relation_joined():
-    ''' Send the virtual IP '''
-    ipaddr = re.split('/', config()['admin-virtual-ip'])[0]
+@when('website.available', 'keepalived.started')
+def website_available(website):
+    ''' Send the port '''
+    website.configure(port=443)
 
-    relation_settings = {
-        "hostname": ipaddr,
-        "port": 443
-    }
 
-    relation_set(relation_id=relation_id(), relation_settings=relation_settings)
-
-@hook('loadbalancer-relation-joined')
-def loadbalancer_relation_joined():
+@when('loadbalancer.available', 'keepalived.started')
+def loadbalancer_available(loadbalaner):
     ''' Send the virtual IP  '''
     ipaddr = re.split('/', config()['admin-virtual-ip'])[0]
-
-    relation_settings = {
-        "public-address": ipaddr,
-        "port": 443
-    }
-
-    relation_set(relation_id=relation_id(), relation_settings=relation_settings)
+    loadbalaner.set_address_port(ipaddr, 443)

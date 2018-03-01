@@ -23,18 +23,6 @@ juju deploy keepalived
 juju add-relation haproxy keepalived
 ```
 
-## Configuration
-
-**virtual-ip** Virtual IP/netmask that will be moved between instances,
-      e.g.: 10.1.2.3/16
-
-**router-id** Virtual router identifier - a number between 1 and 255
-      that's unique within the network segment
-
-**network-interface** Network interface name for the Virtual IP
-
-## Known Limitations
-
 
 ## Further information
 
