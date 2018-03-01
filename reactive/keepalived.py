@@ -33,21 +33,16 @@ def install_keepalived_package():
 def configure_keepalived_service():
     ''' Set up the keepalived service '''
 
-    admin_virtual_ip = config().get('admin-virtual-ip')
-    public_virtual_ip = config().get('public-virtual-ip')
-    if admin_virtual_ip == "" or public_virtual_ip == "":
+    virtual_ip = config().get('virtual-ip')
+    if virtual_ip == "":
         status_set('blocked', 'Please configure virtual ips')
         return
 
     context = {'is_leader': is_leader(),
-               'admin-virtual-ip': admin_virtual_ip,
-               'admin-network-interface': config().get('admin-network-interface'),
-               'admin-router-id': config().get('admin-router-id'),
-               'public': config().get('public'),
-               'public-virtual-ip': public_virtual_ip,
-               'public-network-interface': config().get('public-network-interface'),
-               'public-router-id': config().get('public-router-id'),
-               }
+               'virtual-ip': virtual_ip,
+               'network-interface': config().get('network-interface'),
+               'router-id': config().get('router-id')
+              }
     render(source='keepalived.conf',
            target=KEEPALIVED_CONFIG_FILE,
            context=context,
@@ -55,10 +50,10 @@ def configure_keepalived_service():
     service_restart('keepalived')
 
     render(source='50-keepalived.conf',
-        target=SYSCTL_FILE,
-        context={'sysctl': {'net.ipv4.ip_nonlocal_bind': 1}},
-        perms=0o644)
-    service_restart('keepalived')
+           target=SYSCTL_FILE,
+           context={'sysctl': {'net.ipv4.ip_nonlocal_bind': 1}},
+           perms=0o644)
+    service_restart('procps')
 
     status_set('active', 'VIP ready')
     set_state('keepalived.started')
@@ -72,11 +67,12 @@ def reconfigure():
 @when('website.available', 'keepalived.started')
 def website_available(website):
     ''' Send the port '''
-    website.configure(port=443)
+    ipaddr = re.split('/', config()['virtual-ip'])[0]
+    website.configure(port=443, private_address=ipaddr, hostname=ipaddr)
 
 
 @when('loadbalancer.available', 'keepalived.started')
-def loadbalancer_available(loadbalaner):
+def loadbalancer_available(loadbalancer):
     ''' Send the virtual IP  '''
-    ipaddr = re.split('/', config()['admin-virtual-ip'])[0]
-    loadbalaner.set_address_port(ipaddr, 443)
+    ipaddr = re.split('/', config()['virtual-ip'])[0]
+    loadbalancer.set_address_port(ipaddr, 443)
