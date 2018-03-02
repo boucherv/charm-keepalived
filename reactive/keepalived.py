@@ -1,5 +1,6 @@
 import os
 import re
+from subprocess import check_output
 
 from charms.reactive import set_state, when, when_not
 from charms.reactive.flags import remove_state
@@ -27,21 +28,34 @@ def install_keepalived_package():
 
     set_state('keepalived.package.installed')
 
+def default_route_interface():
+    ''' Returns the network interface of the system's default route '''
+    default_interface = None
+    cmd = ['route']
+    output = check_output(cmd).decode('utf8')
+    for line in output.split('\n'):
+        if 'default' in line:
+            default_interface = line.split(' ')[-1]
+            return default_interface
 
 @when('keepalived.package.installed')
 @when_not('keepalived.started')
 def configure_keepalived_service():
     ''' Set up the keepalived service '''
 
-    virtual_ip = config().get('virtual-ip')
+    virtual_ip = config().get('virtual_ip')
     if virtual_ip == "":
         status_set('blocked', 'Please configure virtual ips')
         return
 
+    network_interface = config().get('network_interface')
+    if network_interface == "":
+        network_interface = default_route_interface()
+
     context = {'is_leader': is_leader(),
-               'virtual-ip': virtual_ip,
-               'network-interface': config().get('network-interface'),
-               'router-id': config().get('router-id')
+               'virtual_ip': virtual_ip,
+               'network_interface': network_interface,
+               'router_id': config().get('router_id')
               }
     render(source='keepalived.conf',
            target=KEEPALIVED_CONFIG_FILE,
