@@ -13,6 +13,6 @@ options:
       that's unique within the network segment
   network-interface:
     type: string
-    default: "ens3"
+    default: "auto"
     description: |
       Network interface name for the VIP

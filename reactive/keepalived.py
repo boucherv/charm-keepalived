@@ -1,5 +1,6 @@
 import os
 import re
+from subprocess import check_output
 
 from charms.reactive import set_state, when, when_not
 from charms.reactive.flags import remove_state
@@ -38,9 +39,18 @@ def configure_keepalived_service():
         status_set('blocked', 'Please configure virtual ips')
         return
 
+    network_interface = config().get('network-interface')
+    if network_interface == "auto":
+        cmd = ['route']
+        output = check_output(cmd).decode('utf8')
+        for line in output.split('\n'):
+            if 'default' in line:
+                network_interface = line.split(' ')[-1]
+                break
+
     context = {'is_leader': is_leader(),
                'virtual-ip': virtual_ip,
-               'network-interface': config().get('network-interface'),
+               'network-interface': network_interface,
                'router-id': config().get('router-id')
               }
     render(source='keepalived.conf',
