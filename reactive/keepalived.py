@@ -39,18 +39,18 @@ def configure_keepalived_service():
         status_set('blocked', 'Please configure virtual ips')
         return
 
-    network_interface = config().get('network-interface')
-    if network_interface == "auto":
-        cmd = ['route']
-        output = check_output(cmd).decode('utf8')
-        for line in output.split('\n'):
-            if 'default' in line:
-                network_interface = line.split(' ')[-1]
-                break
+    default_interface = None
+    cmd = ['route']
+    output = check_output(cmd).decode('utf8')
+    for line in output.split('\n'):
+        if 'default' in line:
+            default_interface = line.split(' ')[-1]
+            break
 
     context = {'is_leader': is_leader(),
                'virtual-ip': virtual_ip,
-               'network-interface': network_interface,
+               'network-interface': config().get('network-interface',
+                                                 default_interface),
                'router-id': config().get('router-id')
               }
     render(source='keepalived.conf',
