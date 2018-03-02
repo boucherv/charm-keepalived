@@ -81,12 +81,12 @@ def reconfigure():
 @when('website.available', 'keepalived.started')
 def website_available(website):
     ''' Send the port '''
-    ipaddr = re.split('/', config()['virtual-ip'])[0]
+    ipaddr = re.split('/', config()['virtual_ip'])[0]
     website.configure(port=443, private_address=ipaddr, hostname=ipaddr)
 
 
 @when('loadbalancer.available', 'keepalived.started')
 def loadbalancer_available(loadbalancer):
     ''' Send the virtual IP  '''
-    ipaddr = re.split('/', config()['virtual-ip'])[0]
+    ipaddr = re.split('/', config()['virtual_ip'])[0]
     loadbalancer.set_address_port(ipaddr, 443)
