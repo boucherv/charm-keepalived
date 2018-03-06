@@ -18,11 +18,19 @@ used independently or all together to provide resilient infrastructures.
 The Keepalived charm is a
 [subordinate](https://jujucharms.com/docs/stable/authors-subordinate-services).
 
+For HA Proxy
 ```
 juju deploy keepalived
 juju add-relation haproxy keepalived
 ```
 
+For Kubernetes
+```
+juju deploy keepalived
+juju add-relation kubeapi-load-balancer keepalived
+juju add-relation keepalived kubernetes-worker
+juju add-relation keepalived kubernetes-master
+```
 
 ## Further information
 
