@@ -2,4 +2,4 @@ includes: ['layer:basic', 'interface:juju-info', 'interface:public-address', 'in
 options:
   basic:
     use_venv: true
-repo: "https://github.com/juju-solutions/charm-flannel.git"
+repo: "https://github.com/boucherv/charm-keepalived.git"

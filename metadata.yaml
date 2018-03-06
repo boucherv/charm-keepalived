@@ -1,7 +1,8 @@
 name: "keepalived"
 summary: "Failover and monitoring daemon for LVS clusters"
 maintainers:
-  - "Michal Sawicz <michal.sawicz@canonical.com>"
+  - "Konstantinos Tsakalozos <kos.tsakalozos@canonical.com>"
+  - "Valentin Boucher <valentin.boucher@kontron.com>"
 description: |
   keepalived is used for monitoring real servers within a Linux Virtual
   Server (LVS) cluster.
