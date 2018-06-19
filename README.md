@@ -27,7 +27,7 @@ juju add-relation haproxy keepalived
 For Kubernetes
 ```
 juju deploy keepalived
-juju add-relation kubeapi-load-balancer keepalived
+juju add-relation keepalived:juju-info kubeapi-load-balancer:juju-info
 juju add-relation keepalived kubernetes-worker
 juju add-relation keepalived kubernetes-master
 ```
